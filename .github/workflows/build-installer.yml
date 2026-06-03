@@ -32,10 +32,9 @@ jobs:
           pyinstaller --noconfirm --onedir --windowed --name "InterludeDefender" main.py
 
       - name: Compile Inno Setup Script
-        # We use a popular action to run Inno Setup compiler (ISCC)
-        uses: minyus/iscc-action@v1
-        with:
-          iss-path: setup.iss
+        run: |
+          choco install innosetup -y
+          "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" setup.iss
 
       - name: Upload Installer Artifact
         uses: actions/upload-artifact@v4
