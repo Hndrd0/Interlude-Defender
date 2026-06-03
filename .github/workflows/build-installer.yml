@@ -1,0 +1,50 @@
+name: Build Windows Installer
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller
+          # Assuming you run this from the defender folder or set working-directory
+          pip install -r requirements.txt
+
+      - name: Build Executable with PyInstaller
+        run: |
+          pyinstaller --noconfirm --onedir --windowed --name "InterludeDefender" main.py
+
+      - name: Compile Inno Setup Script
+        # We use a popular action to run Inno Setup compiler (ISCC)
+        uses: minyus/iscc-action@v1
+        with:
+          iss-path: setup.iss
+
+      - name: Upload Installer Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: InterludeDefender-Installer
+          path: Output/InterludeDefender_Setup.exe
+
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/v')
+        with:
+          files: Output/InterludeDefender_Setup.exe
